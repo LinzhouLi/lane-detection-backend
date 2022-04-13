@@ -8,12 +8,14 @@ import subprocess
 UPLOAD_VIDEO_FOLDER = 'video'
 UPLOAD_IMAGE_FOLDER = 'image'
 DOWNLOAD_IMAGE_FOLDER = 'image-pred'
+DOWNLOAD_VIDEO_FOLDER = 'video'
 CONDA_ENV = 'lane'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'mp4', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
 app.config['UPLOAD_VIDEO_FOLDER'] = UPLOAD_VIDEO_FOLDER
 app.config['UPLOAD_IMAGE_FOLDER'] = UPLOAD_IMAGE_FOLDER
+app.config['DOWNLOAD_VIDEO_FOLDER'] = DOWNLOAD_VIDEO_FOLDER
 app.config['DOWNLOAD_IMAGE_FOLDER'] = DOWNLOAD_IMAGE_FOLDER
 app.config['CONDA_ENV'] = CONDA_ENV
 
@@ -40,7 +42,7 @@ def upload_video():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_VIDEO_FOLDER'], filename))
-            return redirect(url_for('download_file', name=filename))
+            return redirect(url_for('download_video', name=filename))
     return '''
     <!doctype html>
     <title>Upload new File</title>
@@ -90,11 +92,13 @@ def upload_image():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             prefix_folder = filename.rsplit('.', 1)[0]  # 用文件名在上传文件夹内再创建一个文件夹
-            os.makedirs(os.path.join(app.config['UPLOAD_IMAGE_FOLDER'], prefix_folder))
-            file_path = os.path.join(app.config['UPLOAD_IMAGE_FOLDER'], prefix_folder, filename)
+            folder_path = os.path.join(app.config['UPLOAD_IMAGE_FOLDER'], prefix_folder)
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+            file_path = os.path.join(folder_path, filename)
             file.save(file_path)
             pred_image(file_path)
-            return redirect(url_for('download_image', name=filename))
+            return url_for('download_image', name=filename)
     return '''
     <!doctype html>
     <title>Upload new File</title>
@@ -109,6 +113,11 @@ def upload_image():
 @app.route('/download/image/<name>')
 def download_image(name):
     return send_from_directory(app.config["DOWNLOAD_IMAGE_FOLDER"], name)
+
+
+@app.route('/download/video/<name>')
+def download_video(name):
+    return send_from_directory(app.config["DOWNLOAD_VIDEO_FOLDER"], name)
 
 
 if __name__ == '__main__':
