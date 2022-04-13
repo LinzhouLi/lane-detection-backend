@@ -1,0 +1,8 @@
+The test images and annotations are taken from the following datasets:
+
+TuSimple
+CULane
+Cityscapes
+PASCAL VOC 2012
+
+Please only use these images for testing, do not distribute or use them for commercial projects against the LICENSE of these datasets.
