@@ -8,11 +8,12 @@ import subprocess
 UPLOAD_VIDEO_FOLDER = 'video'
 UPLOAD_IMAGE_FOLDER = 'image'
 DOWNLOAD_IMAGE_FOLDER = 'image-pred'
-DOWNLOAD_VIDEO_FOLDER = 'video'
+DOWNLOAD_VIDEO_FOLDER = 'video-pred'
 CONDA_ENV = 'lane'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'mp4', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'mp4', 'jpg', 'jpeg', 'avi'}
 
 app = Flask(__name__)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['UPLOAD_VIDEO_FOLDER'] = UPLOAD_VIDEO_FOLDER
 app.config['UPLOAD_IMAGE_FOLDER'] = UPLOAD_IMAGE_FOLDER
 app.config['DOWNLOAD_VIDEO_FOLDER'] = DOWNLOAD_VIDEO_FOLDER
@@ -23,6 +24,23 @@ app.config['CONDA_ENV'] = CONDA_ENV
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def pred_video(filename):
+    commands = (
+            "conda activate " + app.config['CONDA_ENV'] + "\n" +
+            "python tools/vis/lane_video.py"
+            " --video-path=" + os.path.join(app.config['UPLOAD_VIDEO_FOLDER'], filename) +
+            " --save-path=" + os.path.join(app.config['DOWNLOAD_VIDEO_FOLDER'], filename) +
+            " --config=configs/lane_detection/bezierlanenet/resnet18_culane-aug1b.py" +
+            " --checkpoint=checkpoints/trained_model/resnet18_bezierlanenet_culane_aug1b_20211109.pt\n"
+    )
+    process = subprocess.Popen("cmd.exe", shell=False, universal_newlines=True,
+                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdin, stdout = process.communicate(commands)
+    print("input:\n", stdin)
+    print("output:\n", stdout)
+    return
 
 
 @app.route('/upload/video', methods=['GET', 'POST'])
@@ -42,6 +60,7 @@ def upload_video():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_VIDEO_FOLDER'], filename))
+            pred_video(filename)
             return redirect(url_for('download_video', name=filename))
     return '''
     <!doctype html>
