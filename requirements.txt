@@ -1,0 +1,15 @@
+coremltools==5.2.0
+Flask==1.1.2
+matplotlib==3.5.0
+numpy==1.21.5
+onnx==1.11.0
+onnxruntime==1.11.1
+opencv_python==4.5.4.58
+Pillow==9.1.0
+PyYAML==6.0
+scipy==1.7.3
+tensorrt==0.0.1.dev5
+thop==0.0.31.post2005241907
+timm==0.3.2
+tqdm==4.62.3
+ujson==4.2.0
