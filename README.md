@@ -32,3 +32,16 @@
 ![example1](image/example1.png)
 
 ![example2](image/example2.png)
+
+## File structure
+
+```shell
+├─checkpoints # LaneNet
+├─configs # LaneNet
+├─image
+├─models # Yolov5
+├─utils # LaneNet
+├─yolo_utils # Yolov5
+└─yolo_weights # Yolov5
+```
+
