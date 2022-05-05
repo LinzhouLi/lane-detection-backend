@@ -104,7 +104,7 @@ def yoloInit():
 
     # Get names and colors
     yoloConfig['names'] = yoloConfig['model'].module.names if hasattr(yoloConfig['model'], 'module') else yoloConfig['model'].names
-    yoloConfig['colors'] = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(yoloConfig['names']))]
+    yoloConfig['colors'] = [[random.randint(50, 150) for _ in range(3)] for _ in range(len(yoloConfig['names']))]
 
 
 
@@ -197,7 +197,7 @@ def predictImage():
         im_file = request.files["image"]
         im_bytes = im_file.read()
         img = cv2.imdecode(np.frombuffer(im_bytes, np.uint8), cv2.IMREAD_COLOR)
-
+        
         # yolov5s
         result = { 'yolo': None, 'lane': None }
         yoloResult = yolov5(img)
@@ -206,8 +206,11 @@ def predictImage():
         # laneNet
         laneNetResult = laneNet(img)
         result['lane'] = laneNetResult
-
+        
         return jsonify(result)
+
+    else:
+        return "no file part"
 
 
 if __name__ == "__main__":
