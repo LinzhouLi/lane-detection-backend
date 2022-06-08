@@ -6,8 +6,8 @@ Usage:
 
 import argparse
 
-from .common import *
-from yolo_utils import google_utils
+from common import *
+from ..yolo_utils import google_utils
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

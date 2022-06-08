@@ -28,7 +28,7 @@ DETECTION_URL = "/image"
 yoloConfig = {
     'device': 'cpu',
     'weights': './yolo_weights/best_yolov5s_bdd.pt',
-    'imgsz': 640,
+    'imgsz': 320,
     'confThres': 0.4,
     'iouThres': 0.5,
     'classes': None,
@@ -56,8 +56,8 @@ lane_cfg = { }
 
 laneNetArgs = argparse.Namespace(
     batch_size=None, cfg_options=None,
-    checkpoint='./checkpoints/trained_model/resnet18_bezierlanenet_culane_aug1b_20211109.pt',
-    config='./configs/lane_detection/bezierlanenet/resnet18_culane-aug1b.py',
+    checkpoint='./checkpoints/trained_model/resnet18_bezierlanenet_tusimple_aug1b_20211109.pt',
+    config='./configs/lane_detection/bezierlanenet/resnet18_tusimple-aug1b.py',
     continue_from=None, device='cpu', dist_url=None, epochs=None, exp_name=None, gt_keypoint_path=None, gt_keypoint_suffix='.lines.txt',
     image_path='', image_suffix='',
     keypoint_path=None, keypoint_suffix='.lines.txt', lr=None, mask_path=None, mask_suffix='.png', metric='culane',
@@ -107,6 +107,37 @@ def yoloInit():
     yoloConfig['colors'] = [[random.randint(50, 150) for _ in range(3)] for _ in range(len(yoloConfig['names']))]
 
 
+def saveYolo():
+
+    weights = yoloConfig['weights']
+    # Input
+    img = torch.zeros((1, 3, 192, 320))  # image size(1,3,192,320) iDetection
+
+    # Load PyTorch model
+    model = torch.load(weights, map_location=torch.device('cpu'))['model'].float()
+    model.eval()
+    model.model[-1].export = True  # set Detect() layer export=True
+    print('input size: ', img.shape)
+    y = model(img)  # dry run
+
+    try:
+        import onnx
+
+        print('\nStarting ONNX export with onnx %s...' % onnx.__version__)
+        f = weights.replace('.pt', '.onnx')  # filename
+        model.fuse()  # only for ONNX
+        torch.onnx.export(model, img, f, verbose=False, opset_version=12, input_names=['images'],
+                          output_names=['classes', 'boxes'] if y is None else ['output'])
+
+        # Checks
+        onnx_model = onnx.load(f)  # load onnx model
+        onnx.checker.check_model(onnx_model)  # check onnx model
+        print(onnx.helper.printable_graph(onnx_model.graph))  # print a human readable model
+        print('ONNX export success, saved as %s' % f)
+    except Exception as e:
+        print('ONNX export failure: %s' % e)
+    
+
 
 def laneNet(img):
 
@@ -129,7 +160,6 @@ def laneNet(img):
         )
     ])(img)
     img = img.unsqueeze(0)
-    img = img.to(laneNetArgs.device)
     
     # Inference
     keypoints = laneNetConfig['model'].inference(
@@ -219,6 +249,8 @@ if __name__ == "__main__":
     opt = parser.parse_args()
 
     yoloInit()
+    
     laneNetInit()
 
     app.run(host="0.0.0.0", port=opt.port)  # debug=True causes Restarting with stat
+    # saveYolo()

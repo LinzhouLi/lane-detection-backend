@@ -29,6 +29,29 @@
 
 ## API Example
 
+**JSON data structure:**
+
+```json
+{
+    "lane": [
+        [[x1, y1], [x2, y2] ... ],
+        [[x1, y1], [x2, y2] ... ],
+        ...
+    ],
+    "yolo": [
+        {
+        	"class": "xxx",
+        	"color": [R, G, B],
+    		"confidence": "0.98572",
+    		"coords": [x1, y1, x2, y2]
+        },
+		...
+    ]
+}
+```
+
+**Postman:**
+
 ![example1](image/example1.png)
 
 ![example2](image/example2.png)
